@@ -1,4 +1,4 @@
-.cart_section{
+.order_section{
     width: 100%;
     min-height:50vh;
     position: relative;
@@ -6,7 +6,12 @@
     background-color: #EAEDED!important;
 }
 
-.cart_section .cart_container{  
+
+
+
+
+
+.order_section .cart_container{  
     margin: 0 auto;
     padding:40px 20px;
     display: flex;
@@ -228,10 +233,10 @@
 
 @media (max-width:768px){
     
-    .cart_section{
+    .order_section{
         min-height: 45vh;
     }
-    .cart_section .cart_container{  
+    .order_section .cart_container{  
         flex-direction: column;
         align-items: center;
         padding:10px;

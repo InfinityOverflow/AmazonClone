@@ -8,7 +8,7 @@ import SignIn from './components/Signup_signIn/SignIn';
 import Product from './components/Product/Product';
 import Cart from './components/cart/Cart'
 import CircularProgress from '@mui/material/CircularProgress';
-
+import Order from './components/order/Order';
 import {Routes,Route} from "react-router-dom";
 import { useEffect, useState } from 'react';
 
@@ -35,6 +35,7 @@ function App() {
           <Route path='/register' element={<SignUp/>}/>
           <Route path='/cart' element={<Cart/>}/>
           <Route path='/buyProduct/:id' element={<Product/>}/>
+          <Route path='/order' element={<Order/>}/>
       </Routes>
       <Footer/>
         </>

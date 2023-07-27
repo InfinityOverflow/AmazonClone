@@ -1,9 +1,11 @@
+require("dotenv").config();
 const express = require('express');
 const router = new express.Router();
 const Products=require("../models/productSchema");
 const USER = require("../models/userSchema");
 const bcrypt = require('bcryptjs');
 const authenticate = require('../middleware/authenticate');
+const stripe = require('stripe')(process.env.STRIPE_PRVT_KEY);
 
 
 //GET product api
@@ -25,7 +27,7 @@ router.get("/buyProduct/:id", async (req, res) => {
       const { id } = req.params;
   
       const productData = await Products.findOne({ id: id });
-    //   console.log(productData + "The END");
+      console.log(productData + "The END");
       res.status(201).json(productData);
     } catch (error) {
       res.status(400).json(productData)
@@ -57,7 +59,6 @@ router.get("/buyProduct/:id", async (req, res) => {
                 name, email, mobile, password, cpassword
             });
 
-            // yaha pe hashing krenge
 
             const storedata = await finaluser.save();
             // console.log(storedata + "user successfully added");
@@ -183,7 +184,7 @@ router.get("/logout", authenticate, async (req, res) => {
     }
 });
 
-// item remove ho rhi hain lekin api delete use krna batter hoga
+
 // remove item from the cart
 
 router.get("/remove/:id", authenticate, async (req, res) => {
@@ -204,6 +205,182 @@ router.get("/remove/:id", authenticate, async (req, res) => {
     }
 });
 
-
+//Paymet API
+// /create-checkout-session
+// router.post('/create-checkout-session',authenticate,async(req,res)=>{
+//     try {
+//         const session = await stripe.checkout.sessions.create({
+//             line_items:  await req.rootUser.carts.map(async(obj)=>{
+//                 let ProductData;
+//                 const getProductData=  async () => {
+//                     const res = await fetch(`http://localhost:8005/buyProduct/${obj.id}`, {
+//                       method: "GET",
+//                       headers: {
+//                         Accept: "application/json",
+//                         "Content-Type": "application/json",
+//                       },
+//                       credentials: "include",
+//                     });
+//                     const data = await res.json();
+//                     console.log("Helooo Pls exuces me ");
+//                     console.log(data);
+//                     if (res.status !== 201) {
+//                     //   alert("no data available");
+//                     console.log("ERoRRRR")
+//                     } else {
+//                         ProductData=data;
+//                         return data;
+//                       // console.log("ind mila hain");
+//                     //   setIndedata(data);
+//                     }
+//                   }
+//                   const Call= await getProductData();
+//                   console.log("AYUSH IS HERE   ")
+//                   console.log(ProductData)
+//                   return{
+//                     price_data:{
+//                         currency:"inr",
+//                         product_data: {
+//                             name: ProductData.name,
+//                         },
+//                         unit_amount: ProductData.price.cost,
+//                     },
+//                     quantity: 1
+//                   }
+                  
+//             }) /*[
+//               {
+//                 // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+//                 // price: '{{req.rootUser.carts}}',
+//                 // quantity: 1,
+//               },
+//             ]*/,
+//             mode: 'payment',
+//             success_url: `http://localhost:3000/order?success=true`,
+//             cancel_url: `http://localhost:3000/order?canceled=true`,
+//           });
+//           res.json({ url: session.url })
+        
+//     } catch (error) {
+//         res.status(500).json({ error: error.message })
+//         console.log(error.message);
+//     }
+// })
+// router.post('/create-checkout-session', authenticate, async (req, res) => {
+//     try {
+//       const lineItems = await Promise.all(
+//         req.rootUser.carts.map(async (obj) => {
+//           let ProductData;
+//           const getProductData = async () => {
+//             try {
+//               const res = await fetch(`http://localhost:8005/buyProduct/${obj.id}`, {
+//                 method: "GET",
+//                 headers: {
+//                   Accept: "application/json",
+//                   "Content-Type": "application/json",
+//                 },
+//                 credentials: "include",
+//               });
+//               const data = await res.json();
+//               console.log("Hello, please excuse me:");
+//               console.log(data);
+//               if (res.status !== 201) {
+//                 console.log("Error fetching product data");
+//                 return null;
+//               } else {
+//                 ProductData = data;
+//                 return data;
+//               }
+//             } catch (error) {
+//               console.log("Error fetching product data:", error.message);
+//               return null;
+//             }
+//           };
+  
+//           const Call = await getProductData();
+//           console.log("AYUSH IS HERE:");
+//           console.log(ProductData);
+//           return {
+//             price_data: {
+//               currency: "inr",
+//               product_data: {
+//                 name: ProductData.name
+//               },
+//               unit_amount: ProductData.price.cost,
+//             },
+//             quantity: 1,
+//           };
+//         })
+//       );
+  
+//       const session = await stripe.checkout.sessions.create({
+//         line_items: lineItems,
+//         mode: "payment",
+//         success_url: "http://localhost:3000/order?success=true",
+//         cancel_url: "http://localhost:3000/order?canceled=true",
+//       });
+  
+//       res.json({ url: session.url });
+//     } catch (error) {
+//       res.status(500).json({ error: error.message });
+//       console.log(error.message);
+//     }
+//   });
+router.post('/create-checkout-session', authenticate, async (req, res) => {
+    try {
+      const lineItems = await Promise.all(
+        req.rootUser.carts.map(async (obj) => {
+          let productData;
+          const getProductData = async () => {
+            try {
+              const res = await fetch(`http://localhost:8005/buyProduct/${obj.id}`, {
+                method: "GET",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+              });
+              const data = await res.json();
+              console.log("Hello, please excuse me:");
+              console.log(data);
+              if (res.status !== 201) {
+                console.log("Error fetching product data");
+                return null;
+              } else {
+                productData = data;
+                return data;
+              }
+            } catch (error) {
+              console.log("Error fetching product data:", error.message);
+              return null;
+            }
+          };
+  
+          const call = await getProductData();
+          console.log("AYUSH IS HERE:");
+          console.log(productData);
+          return {
+             price: productData.price.cost,
+             quantity:1
+          };
+        })
+      );
+  
+      const session = await stripe.checkout.sessions.create({
+        line_items: lineItems,
+        mode: "payment",
+        success_url: "http://localhost:3000/order?success=true",
+        cancel_url: "http://localhost:3000/order?canceled=true",
+      });
+  
+      res.json({ url: session.url });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+      console.log(error.message);
+    }
+  });
+  
+  
 
 module.exports= router;
