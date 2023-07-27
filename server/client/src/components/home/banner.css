@@ -1,0 +1,17 @@
+.banner_img{
+    width: 100vw;
+    height: 280px;
+    margin-top: 20px;
+}
+
+.cara{
+    margin-top: 10;
+}
+
+
+@media (max-width:768px){
+    .banner_img{
+        object-fit: cover;
+        height: 180px;
+    }
+}
